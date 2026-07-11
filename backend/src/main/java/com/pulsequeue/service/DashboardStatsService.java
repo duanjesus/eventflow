@@ -6,10 +6,10 @@ import com.pulsequeue.dto.response.DashboardStatsResponse;
 import com.pulsequeue.entity.ProcessedEventStatus;
 import com.pulsequeue.repository.ProcessedEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.QueueInformation;
-import org.springframework.boot.actuate.amqp.RabbitHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +24,12 @@ import java.time.Duration;
 @Service
 public class DashboardStatsService {
 
+    private static final Logger log = LoggerFactory.getLogger(DashboardStatsService.class);
     private static final String CACHE_KEY = "dashboard:stats";
 
     private final ProcessedEventRepository repository;
     private final AmqpAdmin amqpAdmin;
     private final RabbitMqProperties rabbitMqProperties;
-    private final RabbitHealthIndicator rabbitHealthIndicator;
     private final StringRedisTemplate redisTemplate;
     private final CacheProperties cacheProperties;
     private final ObjectMapper objectMapper;
@@ -37,14 +37,12 @@ public class DashboardStatsService {
     public DashboardStatsService(ProcessedEventRepository repository,
                                   AmqpAdmin amqpAdmin,
                                   RabbitMqProperties rabbitMqProperties,
-                                  RabbitHealthIndicator rabbitHealthIndicator,
                                   StringRedisTemplate redisTemplate,
                                   CacheProperties cacheProperties,
                                   ObjectMapper objectMapper) {
         this.repository = repository;
         this.amqpAdmin = amqpAdmin;
         this.rabbitMqProperties = rabbitMqProperties;
-        this.rabbitHealthIndicator = rabbitHealthIndicator;
         this.redisTemplate = redisTemplate;
         this.cacheProperties = cacheProperties;
         this.objectMapper = objectMapper;
@@ -71,9 +69,20 @@ public class DashboardStatsService {
     }
 
     private DashboardStatsResponse computeStats() {
-        QueueInformation queueInfo = amqpAdmin.getQueueInfo(rabbitMqProperties.queue());
-        long queueDepth = queueInfo != null ? queueInfo.getMessageCount() : 0;
-        int consumerCount = queueInfo != null ? queueInfo.getConsumerCount() : 0;
+        long queueDepth = 0;
+        int consumerCount = 0;
+        String rabbitMqStatus;
+        try {
+            QueueInformation queueInfo = amqpAdmin.getQueueInfo(rabbitMqProperties.queue());
+            if (queueInfo != null) {
+                queueDepth = queueInfo.getMessageCount();
+                consumerCount = queueInfo.getConsumerCount();
+            }
+            rabbitMqStatus = "UP";
+        } catch (Exception ex) {
+            log.warn("RabbitMQ health check failed: {}", ex.getMessage());
+            rabbitMqStatus = "DOWN";
+        }
 
         long totalReceived = repository.count();
         long processed = repository.countByStatus(ProcessedEventStatus.PROCESSED);
@@ -83,15 +92,6 @@ public class DashboardStatsService {
         long totalRetries = repository.sumRetryCount();
 
         return new DashboardStatsResponse(queueDepth, totalReceived, processed, failed, deadLettered, duplicate,
-                totalRetries, consumerCount, getRabbitMqStatus());
-    }
-
-    private String getRabbitMqStatus() {
-        try {
-            Health health = rabbitHealthIndicator.health();
-            return health.getStatus().getCode();
-        } catch (Exception ex) {
-            return "DOWN";
-        }
+                totalRetries, consumerCount, rabbitMqStatus);
     }
 }

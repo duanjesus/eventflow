@@ -12,10 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.QueueInformation;
-import org.springframework.boot.actuate.amqp.RabbitHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -37,8 +36,6 @@ class DashboardStatsServiceTest {
     @Mock
     private AmqpAdmin amqpAdmin;
     @Mock
-    private RabbitHealthIndicator rabbitHealthIndicator;
-    @Mock
     private StringRedisTemplate redisTemplate;
     @Mock
     private ValueOperations<String, String> valueOperations;
@@ -53,8 +50,7 @@ class DashboardStatsServiceTest {
     @BeforeEach
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        service = new DashboardStatsService(repository, amqpAdmin, rabbitMqProperties, rabbitHealthIndicator,
-                redisTemplate, cacheProperties, objectMapper);
+        service = new DashboardStatsService(repository, amqpAdmin, rabbitMqProperties, redisTemplate, cacheProperties, objectMapper);
     }
 
     @Test
@@ -62,7 +58,6 @@ class DashboardStatsServiceTest {
         when(valueOperations.get("dashboard:stats")).thenReturn(null);
         when(amqpAdmin.getQueueInfo("pulsequeue.events.queue"))
                 .thenReturn(new QueueInformation("pulsequeue.events.queue", 7, 2));
-        when(rabbitHealthIndicator.health()).thenReturn(Health.up().build());
         when(repository.count()).thenReturn(10L);
         when(repository.countByStatus(ProcessedEventStatus.PROCESSED)).thenReturn(6L);
         when(repository.countByStatus(ProcessedEventStatus.FAILED)).thenReturn(2L);
@@ -85,10 +80,11 @@ class DashboardStatsServiceTest {
     }
 
     @Test
-    void reportsRabbitMqDownWhenHealthIndicatorThrows() {
+    void reportsRabbitMqDownWhenBrokerCallThrows() {
         when(valueOperations.get("dashboard:stats")).thenReturn(null);
-        when(amqpAdmin.getQueueInfo("pulsequeue.events.queue")).thenReturn(null);
-        when(rabbitHealthIndicator.health()).thenThrow(new RuntimeException("connection refused"));
+        when(amqpAdmin.getQueueInfo("pulsequeue.events.queue")).thenThrow(new AmqpConnectException(null));
+        when(repository.count()).thenReturn(0L);
+        when(repository.sumRetryCount()).thenReturn(0L);
 
         DashboardStatsResponse stats = service.getStats();
 
@@ -107,7 +103,6 @@ class DashboardStatsServiceTest {
         assertEquals(cached, result);
         verifyNoInteractions(repository);
         verifyNoInteractions(amqpAdmin);
-        verifyNoInteractions(rabbitHealthIndicator);
         verify(valueOperations, never()).set(anyString(), anyString(), eq(Duration.ofSeconds(5)));
     }
 }
