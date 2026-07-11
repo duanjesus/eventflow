@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.eventflow</groupId>
-    <artifactId>eventflow-api</artifactId>
+    <groupId>com.pulsequeue</groupId>
+    <artifactId>pulsequeue-api</artifactId>
     <version>1.0.0</version>
-    <name>eventflow-api</name>
+    <name>pulsequeue-api</name>
     <description>Event-driven notification platform: consumes domain events over RabbitMQ and fans them out to Email/Push/WebSocket channels</description>
 
     <properties>
@@ -51,6 +51,10 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
@@ -81,6 +85,11 @@
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

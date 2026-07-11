@@ -12,28 +12,37 @@ export function DashboardPage() {
   const liveEvents = useLiveNotifications();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">EventFlow Dashboard</h1>
-          <p className="text-sm text-slate-500">Producer → RabbitMQ → Consumer → Email / Push / WebSocket</p>
+    <div className="min-h-screen bg-canvas">
+      <header className="border-b border-panelborder bg-panel">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/15 font-mono text-sm font-bold text-accent">
+              PQ
+            </div>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight text-slate-100">PulseQueue</h1>
+              <p className="text-[11px] text-muted">Notification Infrastructure — Producer → RabbitMQ → Consumers → Email / Push / WebSocket</p>
+            </div>
+          </div>
+          <SimulateControls />
         </div>
-        <SimulateControls />
       </header>
 
-      {statsLoading || !stats ? (
-        <p className="text-slate-400">Loading stats…</p>
-      ) : (
-        <StatsGrid stats={stats} />
-      )}
+      <main className="mx-auto max-w-7xl space-y-6 p-6">
+        {statsLoading || !stats ? (
+          <p className="text-muted">Loading stats…</p>
+        ) : (
+          <StatsGrid stats={stats} />
+        )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <h2 className="mb-2 text-sm font-medium text-slate-500">Recent events</h2>
-          <RecentEventsTable events={eventsPage?.content ?? []} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Recent events</h2>
+            <RecentEventsTable events={eventsPage?.content ?? []} />
+          </div>
+          <LiveFeed events={liveEvents} />
         </div>
-        <LiveFeed events={liveEvents} />
-      </div>
+      </main>
     </div>
   );
 }

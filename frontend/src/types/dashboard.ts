@@ -13,6 +13,8 @@ export interface DashboardStats {
   deadLettered: number;
   duplicate: number;
   totalRetries: number;
+  consumerCount: number;
+  rabbitMqStatus: string;
 }
 
 export interface ProcessedEventItem {

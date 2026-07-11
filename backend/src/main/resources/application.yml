@@ -3,12 +3,12 @@ server:
 
 spring:
   application:
-    name: eventflow-api
+    name: pulsequeue-api
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:eventflow_db}
-    username: ${DB_USER:eventflow_user}
-    password: ${DB_PASSWORD:eventflow_pass}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:pulsequeue_db}
+    username: ${DB_USER:pulsequeue_user}
+    password: ${DB_PASSWORD:pulsequeue_pass}
 
   jpa:
     hibernate:
@@ -25,20 +25,20 @@ spring:
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USER:eventflow}
-    password: ${RABBITMQ_PASSWORD:eventflow}
+    username: ${RABBITMQ_USER:pulsequeue}
+    password: ${RABBITMQ_PASSWORD:pulsequeue}
 
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
-eventflow:
+pulsequeue:
   rabbitmq:
-    exchange: eventflow.exchange
-    queue: eventflow.events.queue
-    dead-letter-exchange: eventflow.exchange.dlx
-    dead-letter-queue: eventflow.events.dlq
+    exchange: pulsequeue.exchange
+    queue: pulsequeue.events.queue
+    dead-letter-exchange: pulsequeue.exchange.dlx
+    dead-letter-queue: pulsequeue.events.dlq
     routing-key-pattern: "#"
   retry:
     max-attempts: 3
@@ -52,6 +52,8 @@ eventflow:
     window-seconds: 60
   cache:
     dashboard-stats-ttl-seconds: 5
+  security:
+    api-key: ${API_KEY:pulsequeue-dev-key-change-me}
 
 management:
   endpoints:
@@ -71,4 +73,4 @@ springdoc:
 
 logging:
   level:
-    com.eventflow: INFO
+    com.pulsequeue: INFO

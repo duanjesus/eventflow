@@ -15,7 +15,7 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-COPY --from=build /app/target/eventflow-api-*.jar app.jar
+COPY --from=build /app/target/pulsequeue-api-*.jar app.jar
 
 EXPOSE 8080
 

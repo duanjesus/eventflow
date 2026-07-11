@@ -4,13 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
+        canvas: "#0b0e14",
+        panel: "#12161f",
+        panelborder: "#232837",
+        muted: "#8b93a7",
+        accent: "#2dd4bf",
         status: {
-          processed: "#16a34a",
-          failed: "#d97706",
-          deadlettered: "#dc2626",
-          duplicate: "#64748b",
-          received: "#2563eb",
+          processed: "#34d399",
+          failed: "#fbbf24",
+          deadlettered: "#f87171",
+          duplicate: "#8b93a7",
+          received: "#60a5fa",
         },
+      },
+      fontFamily: {
+        mono: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
     },
   },

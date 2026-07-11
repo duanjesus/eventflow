@@ -20,18 +20,18 @@ export function SimulateControls() {
   });
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-2">
       <button
         onClick={() => simulate.mutate()}
         disabled={simulate.isPending}
-        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+        className="rounded border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 disabled:opacity-50"
       >
         Simulate events
       </button>
       <button
         onClick={() => simulateFailure.mutate()}
         disabled={simulateFailure.isPending}
-        className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+        className="rounded border border-status-deadlettered/40 bg-status-deadlettered/10 px-3 py-1.5 text-xs font-medium text-status-deadlettered hover:bg-status-deadlettered/20 disabled:opacity-50"
       >
         Simulate failure (retry → DLQ)
       </button>

@@ -1,34 +1,34 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: eventflow-db
+    container_name: pulsequeue-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: eventflow_db
-      POSTGRES_USER: eventflow_user
-      POSTGRES_PASSWORD: eventflow_pass
+      POSTGRES_DB: pulsequeue_db
+      POSTGRES_USER: pulsequeue_user
+      POSTGRES_PASSWORD: pulsequeue_pass
     ports:
       - "5432:5432"
     volumes:
-      - eventflow-db-data:/var/lib/postgresql/data
+      - pulsequeue-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U eventflow_user -d eventflow_db"]
+      test: ["CMD-SHELL", "pg_isready -U pulsequeue_user -d pulsequeue_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    container_name: eventflow-rabbitmq
+    container_name: pulsequeue-rabbitmq
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: eventflow
-      RABBITMQ_DEFAULT_PASS: eventflow
+      RABBITMQ_DEFAULT_USER: pulsequeue
+      RABBITMQ_DEFAULT_PASS: pulsequeue
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - eventflow-rabbitmq-data:/var/lib/rabbitmq
+      - pulsequeue-rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -37,7 +37,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: eventflow-redis
+    container_name: pulsequeue-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -49,7 +49,7 @@ services:
 
   api:
     build: ./backend
-    container_name: eventflow-api
+    container_name: pulsequeue-api
     restart: unless-stopped
     depends_on:
       db:
@@ -61,21 +61,22 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: eventflow_db
-      DB_USER: eventflow_user
-      DB_PASSWORD: eventflow_pass
+      DB_NAME: pulsequeue_db
+      DB_USER: pulsequeue_user
+      DB_PASSWORD: pulsequeue_pass
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
-      RABBITMQ_USER: eventflow
-      RABBITMQ_PASSWORD: eventflow
+      RABBITMQ_USER: pulsequeue
+      RABBITMQ_PASSWORD: pulsequeue
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      API_KEY: ${API_KEY:-pulsequeue-dev-key-change-me}
     ports:
       - "8080:8080"
 
   web:
     build: ./frontend
-    container_name: eventflow-web
+    container_name: pulsequeue-web
     restart: unless-stopped
     depends_on:
       - api
@@ -84,19 +85,19 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.55.0
-    container_name: eventflow-prometheus
+    container_name: pulsequeue-prometheus
     restart: unless-stopped
     depends_on:
       - api
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - eventflow-prometheus-data:/prometheus
+      - pulsequeue-prometheus-data:/prometheus
     ports:
       - "9090:9090"
 
   grafana:
     image: grafana/grafana:11.2.0
-    container_name: eventflow-grafana
+    container_name: pulsequeue-grafana
     restart: unless-stopped
     depends_on:
       - prometheus
@@ -107,12 +108,12 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - eventflow-grafana-data:/var/lib/grafana
+      - pulsequeue-grafana-data:/var/lib/grafana
     ports:
       - "3001:3000"
 
 volumes:
-  eventflow-db-data:
-  eventflow-rabbitmq-data:
-  eventflow-prometheus-data:
-  eventflow-grafana-data:
+  pulsequeue-db-data:
+  pulsequeue-rabbitmq-data:
+  pulsequeue-prometheus-data:
+  pulsequeue-grafana-data:
