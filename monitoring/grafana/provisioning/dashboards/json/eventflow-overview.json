@@ -1,0 +1,74 @@
+{
+  "title": "EventFlow Overview",
+  "uid": "eventflow-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Events processed / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(eventflow_events_processed_total[1m])", "legendFormat": "processed" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Events failed / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "rate(eventflow_events_failed_total[1m])", "legendFormat": "failed" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Dead-lettered (total)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "eventflow_events_deadlettered_total", "legendFormat": "dead-lettered" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Duplicates skipped (total)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        { "expr": "eventflow_events_duplicate_total", "legendFormat": "duplicate" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Retries / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "rate(eventflow_events_retried_total[1m])", "legendFormat": "retried" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Processing duration (p99, seconds)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "eventflow_events_processing_duration_seconds_max", "legendFormat": "max" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "HTTP requests / sec (dashboard + publish endpoints)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "rate(http_server_requests_seconds_count[1m])", "legendFormat": "{{uri}}" }
+      ]
+    }
+  ]
+}
