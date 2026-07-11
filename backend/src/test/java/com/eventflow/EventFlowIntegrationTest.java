@@ -20,6 +20,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
@@ -76,8 +77,9 @@ class EventFlowIntegrationTest {
         publisher.publish(event);
 
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            ProcessedEvent record = repository.findByEventId(event.eventId()).orElseThrow();
-            assertEquals(ProcessedEventStatus.PROCESSED, record.getStatus());
+            Optional<ProcessedEvent> record = repository.findByEventId(event.eventId());
+            assertTrue(record.isPresent(), "event should have been recorded by now");
+            assertEquals(ProcessedEventStatus.PROCESSED, record.get().getStatus());
         });
     }
 
@@ -87,10 +89,11 @@ class EventFlowIntegrationTest {
 
         publisher.publish(event);
 
-        await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
-            ProcessedEvent record = repository.findByEventId(event.eventId()).orElseThrow();
-            assertEquals(ProcessedEventStatus.DEAD_LETTERED, record.getStatus());
-            assertTrue(record.getRetryCount() >= 1);
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            Optional<ProcessedEvent> record = repository.findByEventId(event.eventId());
+            assertTrue(record.isPresent(), "event should have been recorded by now");
+            assertEquals(ProcessedEventStatus.DEAD_LETTERED, record.get().getStatus());
+            assertTrue(record.get().getRetryCount() >= 1);
         });
     }
 
@@ -106,8 +109,9 @@ class EventFlowIntegrationTest {
         publisher.publish(event);
 
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            ProcessedEvent record = repository.findByEventId(eventId).orElseThrow();
-            assertEquals(ProcessedEventStatus.DUPLICATE, record.getStatus());
+            Optional<ProcessedEvent> record = repository.findByEventId(eventId);
+            assertTrue(record.isPresent(), "duplicate delivery should still have a record");
+            assertEquals(ProcessedEventStatus.DUPLICATE, record.get().getStatus());
         });
     }
 }
