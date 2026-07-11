@@ -63,6 +63,17 @@ class EventFlowIntegrationTest {
 
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
+
+        // Shrink retry backoff for the test run: the default (500ms/2x/5s max,
+        // ~1.5s worst case) is tuned for real usage, not for minimizing how
+        // long a test needs 3 Testcontainers instances to stay healthy under
+        // a resource-constrained CI runner. Finishing the retry-to-DLQ cycle
+        // in tens of milliseconds instead of over a second meaningfully
+        // shrinks the window for a transient container hiccup to land
+        // mid-test.
+        registry.add("eventflow.retry.initial-interval-ms", () -> "20");
+        registry.add("eventflow.retry.multiplier", () -> "1.5");
+        registry.add("eventflow.retry.max-interval-ms", () -> "100");
     }
 
     @Autowired
@@ -89,7 +100,7 @@ class EventFlowIntegrationTest {
 
         publisher.publish(event);
 
-        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             Optional<ProcessedEvent> record = repository.findByEventId(event.eventId());
             assertTrue(record.isPresent(), "event should have been recorded by now");
             assertEquals(ProcessedEventStatus.DEAD_LETTERED, record.get().getStatus());
