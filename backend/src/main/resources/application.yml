@@ -54,6 +54,9 @@ pulsequeue:
     dashboard-stats-ttl-seconds: 5
   security:
     api-key: ${API_KEY:pulsequeue-dev-key-change-me}
+  pulsehub:
+    base-url: ${PULSEHUB_BASE_URL:http://localhost:8081}
+    api-key: ${PULSEHUB_API_KEY:pulsehub-system-dev-key-change-me}
 
 management:
   endpoints:
